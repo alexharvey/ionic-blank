@@ -1,47 +1,35 @@
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
+import {Storage} from '@ionic/storage';
 
 import {NavController, Platform} from 'ionic-angular';
-import {SQLite} from "ionic-native";
 
 @Component({
   selector: 'page-home',
   templateUrl: 'home.html'
 })
 export class HomePage {
-  public database: SQLite;
   public people: Array<Object>;
 
-
-  constructor(public navCtrl: NavController, private platform: Platform) {
+  constructor(public navCtrl: NavController, private platform: Platform, private storage: Storage) {
     this.platform.ready().then(() => {
-      this.database = new SQLite();
-      this.database.openDatabase({name: "data.db", location: "default"}).then(() => {
-        this.refresh();
-      }, (error) => {
-        console.log("ERROR: ", error);
-      });
+      this.refresh();
     });
   }
 
   public add() {
-    this.database.executeSql("INSERT INTO people (firstname, lastname) VALUES ('Nic', 'Raboy')", []).then((data) => {
-      console.log("INSERTED: " + JSON.stringify(data));
-    }, (error) => {
-      console.log("ERROR: " + JSON.stringify(error.err));
-    });
+    this.storage.set('firstName', 'Max');
+    this.storage.set('lastName', 'Planck');
   }
 
   public refresh() {
-    this.database.executeSql("SELECT * FROM people", []).then((data) => {
-      this.people = [];
-      if(data.rows.length > 0) {
-        for(var i = 0; i < data.rows.length; i++) {
-          this.people.push({firstname: data.rows.item(i).firstname, lastname: data.rows.item(i).lastname});
-        }
-      }
-    }, (error) => {
-      console.log("ERROR: " + JSON.stringify(error));
-    });
+    this.people = [];
+    this.storage.get('firstName').then((firstName) => {
+      console.log('Your first name is ', firstName);
+      this.storage.get('lastName').then((lastName) => {
+        console.log('Your last name is ', lastName);
+        this.people.push({firstname: firstName, lastname: lastName});
+      })
+    })
   }
 
 }
